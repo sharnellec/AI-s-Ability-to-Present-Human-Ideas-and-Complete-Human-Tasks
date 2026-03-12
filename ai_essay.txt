@@ -1,0 +1,94 @@
+import nltk
+try:
+    nltk.data.find('tokenizers/punkt')
+except nltk.downloader.DownloadError:
+    nltk.download('punkt', download_dir='/usr/local/share/nltk_data')
+import os 
+import textstat
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+
+# Sample essays (keep these as you have them)
+essay_chatgpt = """**The Pros and Cons of Remote Learning in Higher Education**
+
+Remote learning has become an integral part of higher education, especially in recent years, due to advancements in technology and the necessity of adapting to global crises like the COVID-19 pandemic. While it offers numerous advantages, it also presents challenges that must be addressed.
+
+**Pros:**
+
+One of the most significant advantages of remote learning is flexibility. Students can access course materials and participate in classes from anywhere in the world, which is especially beneficial for those balancing education with work or family commitments. This accessibility allows for a wider range of students to enroll in programs that might otherwise be geographically or logistically restrictive.
+
+Remote learning also encourages self-discipline and time management. Without the traditional structure of physical classrooms, students must take initiative in organizing their schedules and completing assignments. This autonomy can enhance personal growth and responsibility. Furthermore, digital platforms often provide resources like recorded lectures and online discussion forums, offering a richer, more accessible learning environment.
+
+**Cons:**
+
+However, remote learning is not without its drawbacks. A key issue is the lack of direct interaction between students and instructors. This can lead to feelings of isolation and hinder the development of important interpersonal skills. Additionally, the absence of face-to-face communication can make it more difficult for students to engage with material and ask questions in real time.
+
+Another significant challenge is the technological divide. Not all students have access to high-speed internet or modern devices, which can create inequalities in the learning experience. The virtual classroom setting may also struggle to provide the hands-on, practical learning opportunities that are vital for certain disciplines, such as medicine or engineering.
+
+In conclusion, while remote learning offers flexibility and autonomy, it also presents challenges related to social interaction, technology access, and practical skill development. Balancing these pros and cons is key to the future of higher education. """
+
+essay_gemini = """## The Dual Edges of Remote Learning in Higher Education
+
+Remote learning has indelibly reshaped the landscape of higher education, presenting a complex tapestry of advantages and disadvantages. Its rise, accelerated by necessity, offers unprecedented flexibility and accessibility, yet simultaneously introduces challenges to the traditional academic experience.
+
+One of the most significant benefits is the enhanced flexibility it affords students. Individuals can often learn at their own pace and on their own schedules, accommodating work, family, and other commitments. This accessibility extends geographically, allowing students in remote areas or those with mobility issues to participate in programs they might otherwise be excluded from. Furthermore, institutions can reach a wider and more diverse student body, breaking down geographical barriers and potentially reducing costs associated with physical infrastructure. The availability of digital resources and recorded lectures can also cater to different learning styles and allow for repeated engagement with course material.
+
+However, remote learning is not without its drawbacks. The lack of face-to-face interaction can hinder the development of crucial social and networking skills, potentially leading to feelings of isolation among students. The spontaneous discussions and collaborative learning that often occur in physical classrooms can be difficult to replicate effectively online. Moreover, the digital divide and varying levels of technological proficiency can create inequities among students. Ensuring academic integrity and providing adequate support services, such as mental health counseling and technical assistance, also present unique challenges in a remote environment. Ultimately, while remote learning offers a powerful and evolving mode of educational delivery, its effectiveness hinges on careful implementation and a conscious effort to mitigate its inherent limitations."""
+
+
+# Initialize the sentiment analyzer once
+analyzer = SentimentIntensityAnalyzer()
+
+# Enhanced analysis function
+def analyze_essay(essay, label):
+    # ... (rest of your function definition is correct) ...
+    print(f"--- {label} Essay Analysis ---")
+
+    # Readability
+    print(f"Flesch Reading Ease: {textstat.flesch_reading_ease(essay):.2f}") # Added formatting
+    print(f"Flesch-Kincaid Grade Level: {textstat.flesch_kincaid_grade(essay):.2f}")
+
+    # Length / Basic Stats
+    words = essay.split() # Simple split for word list
+    word_count = len(words) # Use basic len() after splitting
+    sentence_count = textstat.sentence_count(essay)
+    print(f"Word Count: {word_count}")
+    print(f"Sentence Count: {sentence_count}")
+    if sentence_count > 0:
+      print(f"Average Sentence Length: {word_count / sentence_count:.2f} words")
+    else:
+      print("Average Sentence Length: N/A (No sentences found)")
+
+
+    # Lexical Diversity
+    # Using NLTK's word_tokenize for potentially better tokenization than simple split()
+    try:
+        tokens = nltk.word_tokenize(essay.lower()) # Tokenize and convert to lowercase
+        unique_tokens = set(tokens)
+        if len(tokens) > 0:
+            lexical_diversity = len(unique_tokens) / len(tokens)
+            print(f"Lexical Diversity (Type-Token Ratio): {lexical_diversity:.3f}")
+        else:
+            print("Lexical Diversity: N/A (No tokens found)")
+    except LookupError: # Catch potential error if punkt wasn't successfully downloaded/found
+        print("Lexical Diversity: Error - NLTK 'punkt' resource still missing.")
+
+
+    # Sentiment Analysis
+    try:
+        sentiment_scores = analyzer.polarity_scores(essay)
+        print(f"Sentiment (Compound Score): {sentiment_scores['compound']:.3f}")
+        # You can also print other scores if needed:
+        # print(f"Sentiment Details: Positive={sentiment_scores['pos']:.3f}, Neutral={sentiment_scores['neu']:.3f}, Negative={sentiment_scores['neg']:.3f}")
+    except LookupError: # Catch potential error if vader_lexicon wasn't successfully downloaded/found
+         print("Sentiment Analysis: Error - NLTK 'vader_lexicon' resource still missing.")
+
+
+    print("-" * (len(label) + 18)) # Print a separator line
+    print() # Add a blank line for readability
+
+print(essay_chatgpt)
+# Run the analysis for both essays
+analyze_essay(essay_chatgpt, "ChatGPT")
+
+print(essay_gemini)
+analyze_essay(essay_gemini, "Gemini")
